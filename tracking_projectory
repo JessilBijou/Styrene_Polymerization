@@ -1,0 +1,27 @@
+nlmpcobj_Tracking = nlmpc(4,3,'MV',2,'MD',[1,3]);
+nlmpcobj_Tracking.Ts = Ts;
+nlmpcobj_Tracking.Model = nlmpcobj_Plan.Model;
+nlmpcobj_Tracking.MV = nlmpcobj_Plan.MV(2);
+nlmpcobj_Tracking.OV = nlmpcobj_Plan.OV;
+nlmpcobj_Tracking.Weights.OutputVariables = [1 0 0];        % track y1 only
+nlmpcobj_Tracking.Weights.ManipulatedVariablesRate = 1e-6;  % agressive MV
+Cref = Info.Yopt(:,1);
+MD = [Info.MVopt(:,1) c_Bin*ones(N+1,1)];
+[X1,Y1,MV1,et1] = fedbatch_Track(nlmpcobj_Tracking,x0,u0(2),N,Cref,MD);
+fprintf('\nNonlinear MPC: Elapsed time = %g sec. Production of C = %g mol\n',et1,Y1(end,1));
+nlmpcobj_Tracking.Optimization.RunAsLinearMPC = 'Adaptive';
+[X2,Y2,MV2,et2] = fedbatch_Track(nlmpcobj_Tracking,x0,u0(2),N,Cref,MD);
+fprintf('\nAdaptive MPC: Elapsed time = %g sec. Production of C = %g mol\n',et2,Y2(end,1));
+nlmpcobj_Tracking.Optimization.RunAsLinearMPC = 'TimeVarying';
+[X3,Y3,MV3,et3] = fedbatch_Track(nlmpcobj_Tracking,x0,u0(2),N,Cref,MD);
+fprintf('\nTime-varying MPC: Elapsed time = %g sec. Production of C = %g mol\n',et3,Y3(end,1));
+figure
+plot(Ts*(0:N),[Y1(:,1)])
+title('Production of C')
+legend({'NLMPC'},'location','northwest')
+figure
+plot(Ts*(0:N),[Y1(:,2) ])
+xlabel('Time(h)')
+ylabel('Heat removal rate (J.h-1)')
+title('Heat removal rate (J.h-1)')
+legend({'NLMPC','Adaptive','TimeVarying','Constraint'},'location','southwest')
