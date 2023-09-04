@@ -1,2 +1,2 @@
-# Styrene_Polymerization
-Initialization of parameters &amp; composition
+# Styrene_Polymerization in a Batch reactor
+Initialization of parameters & composition
